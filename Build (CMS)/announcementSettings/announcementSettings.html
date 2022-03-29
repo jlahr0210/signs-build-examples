@@ -1,0 +1,204 @@
+<div class="announcement-settings">
+    <!-- create announcement -->
+    <div class="create_announcement" ng-if="$ctrl.showCreate">
+        <form>
+            <fieldset style="border:1px solid #f08408;padding:10px;margin:10px 2px;">
+                <legend class="create-legend">New Playlist</legend>
+                <!-- name -->
+                <div class="row form-group">
+                    <div class="col-md-4 control-label">
+                        <label for="{{ $ctrl.addUniqueId('ann-name') }}">Name: </label>
+                    </div>
+                    <div class="col-md-8">
+                        <input id="{{ $ctrl.addUniqueId('ann-name') }}"
+                               class="form-control"
+                               ng-model="$ctrl.newPlaylist.name"
+                               ng-blur="$ctrl.checkName();" />
+                    </div>
+                </div>
+                <!-- width -->
+                <div class="row form-group">
+                    <div class="col-md-4 control-label">
+                        <label for="{{ $ctrl.addUniqueId('ann-width') }}">Width: </label>
+                    </div>
+                    <div class="col-md-8">
+                        <input id="{{ $ctrl.addUniqueId('ann-width') }}"
+                               class="form-control"
+                               type="number"
+                               ng-model="$ctrl.newPlaylist.width"
+                               ng-blur="$ctrl.checkRatio()" />
+                    </div>
+                </div>
+                <!-- height -->
+                <div class="row form-group">
+                    <div class="col-md-4 control-label">
+                        <label for="{{ $ctrl.addUniqueId('ann-height') }}">Height: </label>
+                    </div>
+                    <div class="col-md-8">
+                        <input id="{{ $ctrl.addUniqueId('ann-height') }}"
+                               class="form-control"
+                               type="number"
+                               ng-model="$ctrl.newPlaylist.height"
+                               ng-change="$ctrl.checkRatio()" />
+                    </div>
+                </div>
+                <!-- new screen resolution ratio -->
+                <div class="row form-group">
+                    <div class="col-md-4 control-label">
+                        <label>New Playlist Resolution Ratio:</label>
+                    </div>
+                    <div class="col-md-8">
+                        <span ng-if="$ctrl.newAnnRatio">{{$ctrl.newAnnRatio[0]}}:{{$ctrl.newAnnRatio[1]}}</span>
+                    </div>
+                </div>
+                <!-- zone resolution ratio -->
+                <div class="row form-group">
+                    <div class="col-md-4 control-label">
+                        <label>Zone Resolution Ratio:</label>
+                    </div>
+                    <div class="col-md-8">
+                        <span>{{$ctrl.zoneRatio[0]}}:{{$ctrl.zoneRatio[1]}}</span>
+                    </div>
+                </div>
+                <!-- warning -->
+                <div class="row">
+                    <label class="announcement-warning" ng-show="$ctrl.ratioWarning">WARNING: Announcement screen ratio differs from the zone screen ratio!</label>
+                    <label class="announcement-warning" ng-show="$ctrl.formIsInvalid">WARNING: Playlist name required!</label>
+                </div>
+                <!-- buttons -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <button class="btn btn-default" type="button" ng-click="$ctrl.showCreate = !$ctrl.showCreate">
+                            Cancel
+                        </button>
+                        <button class="btn btn-primary" type="button" ng-click="$ctrl.createNewPlaylist({'something': 'something'})"
+                                ng-disabled="$ctrl.formIsInvalid || $ctrl.isSubmitting">
+                            <span ng-if="!$ctrl.isSubmitting">Submit</span>
+                            <div ng-if="$ctrl.isSubmitting"><img src="./assets/iframe-loading.svg" width="25" height="auto"></div>
+                        </button>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+    <!-- default screen -->
+    <div ng-if="!$ctrl.showCreate">
+        <!-- no available screens -->
+        <div class="row" ng-if="$ctrl.availablePlaylists.length === 0">
+            <label class="col-md-8">
+                No Available Announcement Playlists
+            </label>
+            <div class="col-md-4">
+                <button class="btn btn-primary"
+                        type="button"
+                        ng-if="$ctrl.userCanCreatePlaylist"
+                        ng-click="$ctrl.showCreate = !$ctrl.showCreate; $ctrl.setZoneRatio(); ">
+                    Create Announcement Playlist
+                </button>
+            </div>
+        </div>
+        <!-- select announcement screen -->
+        <div class="row form-group" ng-if="$ctrl.availablePlaylists.length > 0">
+            <div class="col-md-8 col-md-offset-1">
+                <label for="{{ $ctrl.addUniqueId('announcement-select') }}">
+                    Select Announcement Playlist:
+                </label>
+                <select id="{{ $ctrl.addUniqueId('announcement-select') }}"
+                        class="form-control"
+                        ng-model="$ctrl.playlistSelect"
+                        ng-options="value.screen_id as value.name for value in $ctrl.availablePlaylists"
+                        ng-change="$ctrl.setPlaylist()"></select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary form-btn" type="button" ng-if="$ctrl.userCanCreatePlaylist"
+                        ng-click="$ctrl.showCreate = !$ctrl.showCreate;
+                            $ctrl.setZoneRatio(); ">Create New Playlist</button>
+            </div>
+        </div>
+        <!-- override colors -->
+        <div class="row form-group" ng-if="$ctrl.availablePlaylists.length > 0">
+            <div class="col-md-8 col-md-offset-1">
+                <label for="{{ $ctrl.addUniqueId('announcement-background') }}">
+                    Override Background Colors
+                </label>
+                <div class="color-picker-div">
+                    <input id="{{ $ctrl.addUniqueId('announcement-background') }}"
+                           class="form-control"
+                           colorpicker="rgba"
+                           colorpicker-with-input="true"
+                           type="text"
+                           ng-model="$ctrl.backgroundColor"
+                           ng-change="$ctrl.backgroundColorChanged()" />
+                    <!-- colorpicker -->
+                    <div colorpicker="rgba" class="paint-bucket-div" colorpicker-with-input="true" ng-model="$ctrl.pickerColor"
+                         ng-change="$ctrl.backgroundColorChanged()">
+                        <div class="background-color-paint-bucket"></div>
+                        <div class="bg-color-color" ng-style="$ctrl.cssguibgcolor">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="button" ng-click="$ctrl.removeBackgroundColor();
+                    $ctrl.cssguibgcolor = $ctrl.cssguibgcolorDefault"
+                        class="glyphicon glyphicon-remove-circle btn-link form-btn" class="form-btn" tooltip="reset" tooltip-placement="auto"
+                        tooltip-animation="true">
+                </button>
+                <span class="fa fa-question-circle form-btn" tooltip="This will override background colors for every announcement in a screen.">
+                </span>
+            </div>
+        </div>
+    </div>
+    <!-- static inputs -->
+    <div class="admin_options" ng-if="$ctrl.checkRootUser">
+        <!-- facility id -->
+        <div class="row form-group">
+            <div class="col-md-10 col-md-offset-1">
+                <label for="{{ $ctrl.addUniqueId('facID') }}">Facility ID: </label>
+                <input id="{{ $ctrl.addUniqueId('facID') }}"
+                       class="form-control"
+                       ng-change="$ctrl.updateProp( { key: 'facilityid', value: $ctrl.facilityId } );"
+                       ng-model="$ctrl.facilityId" />
+            </div>
+        </div>
+        <!-- screen id -->
+        <div class="row form-group">
+            <div class="col-md-10 col-md-offset-1">
+                <label for="{{ $ctrl.addUniqueId('scrID') }}">Playlist ID: </label>
+                <input id="{{ $ctrl.addUniqueId('scrID') }}"
+                       class="form-control"
+                       ng-change="$ctrl.updateProp( { key: 'screenid', value: $ctrl.screenId } );"
+                       ng-model="$ctrl.screenId"/>
+            </div>
+        </div>
+    </div>
+    <div class="row form-group">
+        <div class="col-md-2 col-md-offset-1">
+            <label for="{{ $ctrl.addUniqueId('announcement-shuffle') }}">Shuffle:
+                <span class="pull-right fa fa-question-circle" tooltip="Will shuffle items within the announcement playlist"  tooltip-append-to-body="true"></span>
+            </label>
+            <toggle-switch id="{{ $ctrl.addUniqueId('announcement-shuffle') }}"
+                           ng-model="$ctrl.shuffle"
+                           ng-change="$ctrl.updateProp( { key: 'shuffle', value: $ctrl.shuffle } );"
+                           html="true"
+                           class="switch-primary switch-large"
+                           knob-label=""
+                           on-label="Enabled"
+                           off-label="Disabled">
+            </toggle-switch>
+        </div>
+        <div class="col-md-2">
+            <label for="{{ $ctrl.addUniqueId('mute-video-toggle') }}">Mute Videos: </label>
+            <toggle-switch id="{{ $ctrl.addUniqueId('mute-video-toggle') }}"
+                           ng-model="$ctrl.muteVideos"
+                           ng-change="$ctrl.updateProp({key: 'mute_videos', value: $ctrl.muteVideos});"
+                           html="true"
+                           class="switch-primary switch-large"
+                           knob-label=""
+                           on-label="Enabled"
+                           off-label="Disabled">
+            </toggle-switch>
+        </div>
+    </div>
+</div>
+
